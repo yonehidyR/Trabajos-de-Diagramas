@@ -1,0 +1,74 @@
+@startuml
+ title Diagrama de Componentes" y "Citas Médicas
+skinparam componentStyle rectangle
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+'Yonehidy Ruiz Cuelllo 2019-6095
+'========PAQUETES Y COMPONENTES========
+package "Frontend" 
+{
+  [Interfaz Web] as web
+  [App Movil] as mobile
+}
+
+package "Backend - API REST" 
+{
+  [API REST] as api
+  [Autenticacion] as auth
+  [Gestor de Usuarios] as usuarios
+  [Gestor de Citas] as citas
+  [Gestor Clinico] as clinico
+  [Servicio de Notificaciones] as notificaciones
+}
+
+package "Infraestructura" 
+{
+  [Base de Datos] as db
+  [Almacenamiento Archivos] as storage
+}
+package "Servicios Externos" 
+{
+  [SendGrid / Email] as email
+  [Twilio / SMS] as sms
+  [Firebase cloud Messaging] as fcm
+}
+'========RELACIONES========
+web --> api : HTTP/HTTPS
+mobile --> api : HTTP/HTTPS
+api --> auth : Verificar Credenciales
+api --> usuarios : Gestionar Usuarios
+api --> citas : Gestionar Citas
+api --> clinico : Acceder a Información Clínica
+api --> notificaciones : Enviar Notificaciones
+'========Infraestructura========
+storage --> db : Almacenar Datos
+clinico --> storage : Almacenar Documentos Clínicos
+clinico --> db : Almacenar Documentos Clínicos
+auth --> db : Almacenar Tokens de Sesión
+usuarios --> db : Almacenar Información de Usuarios
+citas --> db : Almacenar Detalles de Citas
+notificaciones --> db : Almacenar Historial de Notificaciones
+'========Servicios Externos========
+notificaciones --> email : Enviar Notificaciones por Email
+notificaciones --> sms : Enviar Notificaciones por SMS
+notificaciones --> fcm : Enviar Notificaciones Push
+'========Notas========
+note right of auth
+ - Usa tokens JWT
+  CON expiracion de 24 horas
+end note
+'========================
+note left of notificaciones
+ Explica que implementa reintentos automaticos y
+ cola de prioridad.
+end note
+'========================
+note bottom of db
+- el motor de BD 
+Especifica que puede usar MySQL o PostgreSQL con replicación
+end note
+'========================
+note top of clinico
+-historial médico completo con encriptación
+end note
+@enduml

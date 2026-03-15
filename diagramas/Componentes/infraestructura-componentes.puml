@@ -1,0 +1,13 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+'========COMPONENTES========
+package "Infraestructura" 
+{
+   [Base de Datos] as db
+   [Almacenamiento de Archivos] as storage
+}
+
+@enduml

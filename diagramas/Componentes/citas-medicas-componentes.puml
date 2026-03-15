@@ -1,0 +1,181 @@
+@startuml
+title Diagrama de Componentes - Sistema de Gestión de Citas Médicas
+
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+
+' ═══════════════════════════════════════════════════
+' CAPA DE PRESENTACIÓN
+' ═══════════════════════════════════════════════════
+package "Capa de Presentación" {
+
+    [InterfazWeb] <<Frontend>>
+    note right of [InterfazWeb]
+        Interfaz de usuario web\nTecnología: React/Angular/Vue
+    end note
+
+    [AplicacionMovil] <<Frontend>>
+    note right of [AplicacionMovil]
+        Aplicación móvil\nTecnología: React Native/Flutter
+    end note
+
+    [APIGateway] <<API>>
+    note right of [APIGateway]
+        Punto de entrada único.\nEnrutamiento de peticiones\ny Autenticación JWT.
+    end note
+
+    () IWebUI - [InterfazWeb]
+    () IMobileUI - [AplicacionMovil]
+    () IRESTAPI - [APIGateway]
+}
+
+' ═══════════════════════════════════════════════════
+' CAPA DE LÓGICA DE NEGOCIO
+' ═══════════════════════════════════════════════════
+package "Capa de Lógica de Negocio" {
+
+    [GestionCitas] <<Service>>
+    note right of [GestionCitas]
+        Agendar, cancelar, modificar citas.\nValidar disponibilidad.\nGestionar estados de citas.
+    end note
+
+    [GestionPacientes] <<Service>>
+    [GestionMedicos] <<Service>>
+    [GestionDiagnosticos] <<Service>>
+    [ServicioAutenticacion] <<Service>>
+
+    [ServicioNotificaciones] <<Service>>
+    note bottom of [ServicioNotificaciones]
+        Coordina el envío de notificaciones\npor múltiples canales: Email,\nSMS y notificaciones Push.
+    end note
+
+    () ICitasService - [GestionCitas]
+    () IPacientesService - [GestionPacientes]
+    () IMedicosService - [GestionMedicos]
+    () IDiagnosticosService - [GestionDiagnosticos]
+    () IAuthService - [ServicioAutenticacion]
+    () INotificationService - [ServicioNotificaciones]
+}
+
+' ═══════════════════════════════════════════════════
+' CAPA DE PERSISTENCIA
+' ═══════════════════════════════════════════════════
+package "Capa de Persistencia" {
+
+    [RepositorioCitas] <<Repository>>
+    [RepositorioPacientes] <<Repository>>
+    [RepositorioMedicos] <<Repository>>
+    [RepositorioDiagnosticos] <<Repository>>
+    [RepositorioUsuarios] <<Repository>>
+
+    () ICitasRepository - [RepositorioCitas]
+    () IPacientesRepository - [RepositorioPacientes]
+    () IMedicosRepository - [RepositorioMedicos]
+    () IDiagnosticosRepository - [RepositorioDiagnosticos]
+    () IUsuariosRepository - [RepositorioUsuarios]
+}
+
+' ═══════════════════════════════════════════════════
+' INFRAESTRUCTURA
+' ═══════════════════════════════════════════════════
+package "Infraestructura" {
+
+    [BaseDatos] <<Database>>
+    note left of [BaseDatos]
+        PostgreSQL/MySQL.\nAlmacenamiento persistente\nde todos los datos del sistema.
+    end note
+
+    [CacheRedis] <<Cache>>
+    note right of [CacheRedis]
+        Caché de sesiones\ny consultas frecuentes.
+    end note
+
+    () IDataAccess - [BaseDatos]
+    () ICacheAccess - [CacheRedis]
+}
+
+' ═══════════════════════════════════════════════════
+' SERVICIOS EXTERNOS
+' ═══════════════════════════════════════════════════
+package "Servicios Externos" {
+
+    [ServicioEmail] <<External>>
+    note right of [ServicioEmail]
+        Envío de correos electrónicos.\nProveedor: SendGrid/AWS SES.
+    end note
+
+    [ServicioSMS] <<External>>
+    note right of [ServicioSMS]
+        Envío de mensajes de texto.\nProveedor: Twilio.
+    end note
+
+    [ServicioPush] <<External>>
+    note right of [ServicioPush]
+        Notificaciones push móviles.\nProveedor: Firebase Cloud Messaging.
+    end note
+
+    [AlmacenamientoArchivos] <<External>>
+    note right of [AlmacenamientoArchivos]
+        Almacenamiento de documentos.\nProveedor: AWS S3/Azure Blob.
+    end note
+
+    () IEmailSender - [ServicioEmail]
+    () ISMSSender - [ServicioSMS]
+    () IPushSender - [ServicioPush]
+    () IFileStorage - [AlmacenamientoArchivos]
+}
+
+' ═══════════════════════════════════════════════════
+' RELACIONES: PRESENTACIÓN → LÓGICA DE NEGOCIO
+' ═══════════════════════════════════════════════════
+
+[InterfazWeb] --> [APIGateway] : HTTP/HTTPS
+[AplicacionMovil] --> [APIGateway] : HTTP/HTTPS
+
+[APIGateway] --> [GestionCitas] : consume
+[APIGateway] --> [GestionPacientes] : consume
+[APIGateway] --> [GestionMedicos] : consume
+[APIGateway] --> [GestionDiagnosticos] : consume
+[APIGateway] --> [ServicioAutenticacion] : consume
+
+' ═══════════════════════════════════════════════════
+' RELACIONES: LÓGICA DE NEGOCIO → PERSISTENCIA
+' ═══════════════════════════════════════════════════
+
+[GestionCitas] --> [RepositorioCitas] : usa
+[GestionCitas] --> [RepositorioMedicos] : usa
+[GestionCitas] --> [ServicioNotificaciones] : notifica
+
+[GestionPacientes] --> [RepositorioPacientes] : usa
+
+[GestionMedicos] --> [RepositorioMedicos] : usa
+
+[GestionDiagnosticos] --> [RepositorioDiagnosticos] : usa
+[GestionDiagnosticos] --> [RepositorioPacientes] : usa
+
+[ServicioAutenticacion] --> [RepositorioUsuarios] : usa
+[ServicioAutenticacion] --> [CacheRedis] : almacena sesión
+
+' ═══════════════════════════════════════════════════
+' RELACIONES: PERSISTENCIA → INFRAESTRUCTURA
+' ═══════════════════════════════════════════════════
+
+[RepositorioCitas] --> [BaseDatos] : persiste
+[RepositorioPacientes] --> [BaseDatos] : persiste
+[RepositorioMedicos] --> [BaseDatos] : persiste
+[RepositorioDiagnosticos] --> [BaseDatos] : persiste
+[RepositorioUsuarios] --> [BaseDatos] : persiste
+
+' ═══════════════════════════════════════════════════
+' RELACIONES: SERVICIOS → EXTERNOS
+' ═══════════════════════════════════════════════════
+
+[ServicioNotificaciones] --> [ServicioEmail] : envía
+[ServicioNotificaciones] --> [ServicioSMS] : envía
+[ServicioNotificaciones] --> [ServicioPush] : envía
+
+[GestionDiagnosticos] --> [AlmacenamientoArchivos] : guarda recetas
+
+@enduml

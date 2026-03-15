@@ -1,0 +1,247 @@
+@startuml citas-medicas-poo
+
+skinparam classAttributeIcon false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam backgroundColor white
+skinparam class {
+    BackgroundColor #F9F9F9
+    BorderColor #333333
+    ArrowColor #333333
+}
+'Yonehidy Ruiz Cuello - 2018-6095
+hide empty methods
+hide empty attributes
+
+' ─────────────────────────────────────────
+' CLASE ABSTRACTA BASE
+' ─────────────────────────────────────────
+class Paciente { ... }
+class Medico { ... }
+class Administrador { ... }
+
+abstract class Persona {
+    - nombre : String
+    - apellido : String
+    - email : String
+    - telefono : String
+    --
+    + getNombreCompleto() : String
+    + getEmail() : String
+    + cambiarEmail(nuevo: String) : boolean
+    # generarId() : String
+}
+
+' ─────────────────────────────────────────
+' INTERFAZ
+' ─────────────────────────────────────────
+
+interface Notificable {
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+' ─────────────────────────────────────────
+' CLASE ABSTRACTA USUARIO
+' ─────────────────────────────────────────
+
+abstract class Usuario extends Persona implements Notificable {
+    - idUsuario : int
+    - username : String
+    - passwordHash : String
+    - activo : boolean
+    --
+    + login(username: String, password: String) : boolean
+    + logout() : void
+    + cambiarPassword(nueva: String) : boolean
+    + esActivo() : boolean
+}
+
+' ─────────────────────────────────────────
+' CLASES CONCRETAS (HERENCIA DE USUARIO)
+' ─────────────────────────────────────────
+
+class Paciente extends Usuario {
+    - idPaciente : int
+    - fechaNacimiento : Date
+    - historialMedico : HistorialMedico
+    --
+    + agendarCita(medico: Medico, fecha: Date, hora: Time, motivo: String) : Cita
+    + cancelarCita(idCita: int) : boolean
+    + verHistorialCitas() : List<Cita>
+    + verHistorialMedico() : HistorialMedico
+    + editarPerfil(email: String, telefono: String) : boolean
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+class Medico extends Usuario {
+    - idMedico : int
+    - especialidad : Especialidad
+    - horarioInicio : Time
+    - horarioFin : Time
+    - numeroColegiado : String
+    --
+    + verAgenda(fecha: Date) : List<Cita>
+    + confirmarAsistencia(cita: Cita) : boolean
+    + registrarDiagnostico(cita: Cita, desc: String, sintomas: String, tratamiento: String) : Diagnostico
+    + actualizarDiagnostico(d: Diagnostico, datos: Map) : boolean
+    + verHistorialPaciente(p: Paciente) : HistorialMedico
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+class Administrador extends Usuario {
+    - idAdmin : int
+    --
+    + crearMedico(nombre: String, apellido: String, email: String, tel: String, especialidad: Especialidad) : Medico
+    + eliminarUsuario(id: int) : boolean
+    + gestionarEspecialidades() : void
+    + auditarSistema() : void
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+' ─────────────────────────────────────────
+' CLASES DE DOMINIO
+' ─────────────────────────────────────────
+
+class Especialidad {
+    - id : int
+    - nombre : String
+    --
+    + validarDisponibilidad() : boolean
+}
+
+class Cita {
+    - idCita : int
+    - paciente : Paciente
+    - medico : Medico
+    - fecha : Date
+    - hora : Time
+    - estado : String
+    - motivo : String
+    --
+    + cambiarEstado(estado: String) : boolean
+    + esPasada() : boolean
+    + notificarRecordatorio() : void
+}
+
+class Diagnostico {
+    - id : int
+    - cita : Cita
+    - descripcion : String
+    - sintomas : String
+    - fecha : Date
+    - tratamiento : String
+    - estadoClinico : String
+    --
+    + generarInforme() : String
+    + cerrar() : boolean
+}
+
+class HistorialMedico {
+    - id : int
+    - paciente : Paciente
+    - diagnosticos : List<Diagnostico>
+    - alergias : String
+    - grupoSanguineo : String
+    --
+    + agregarDiagnostico(d: Diagnostico) : void
+    + obtenerResumen() : String
+}
+
+class Receta {
+    - id : int
+    - diagnostico : Diagnostico
+    - medicamentos : List<Medicamento>
+    - fecha : Date
+    - vigenciaDias : int
+    --
+    + generarPDF() : byte[]
+    + estaVigente() : boolean
+}
+
+class Medicamento {
+    - id : int
+    - nombreComercial : String
+    - nombreGenerico : String
+    - contraindicaciones : String
+    --
+    + esSeguroCon(lista: List<Medicamento>) : boolean
+}
+
+' ─────────────────────────────────────────
+' SISTEMA POLIMÓRFICO DE NOTIFICACIONES
+' ─────────────────────────────────────────
+
+class Notificacion {
+    - id : int
+    - destinatario : Usuario
+    - mensaje : String
+    - leida : boolean
+    - fechaEnvio : DateTime
+    --
+    + marcarComoLeida() : void
+    + reenviar() : boolean
+}
+
+class EmailNotificacion extends Notificacion implements Notificable {
+    - asunto : String
+    --
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+class SMSNotificacion extends Notificacion implements Notificable {
+    - numeroDestino : String
+    --
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+class PushNotificacion extends Notificacion implements Notificable {
+    - dispositivoToken : String
+    --
+    + enviarNotificacion(mensaje: String) : boolean
+}
+
+' ─────────────────────────────────────────
+' RELACIONES DE HERENCIA EXPLÍCITAS
+' ─────────────────────────────────────────
+
+Persona <|-- Usuario
+Notificable <|.. Usuario
+
+Usuario <|-- Paciente
+Usuario <|-- Medico
+Usuario <|-- Administrador
+
+Notificacion <|-- EmailNotificacion
+Notificacion <|-- SMSNotificacion
+Notificacion <|-- PushNotificacion
+
+Notificable <|.. EmailNotificacion
+Notificable <|.. SMSNotificacion
+Notificable <|.. PushNotificacion
+
+' ─────────────────────────────────────────
+' RELACIONES DE COMPOSICIÓN Y ASOCIACIÓN
+' ─────────────────────────────────────────
+
+Paciente "1" --> "1" HistorialMedico : tiene >
+Paciente "1" -- "0..*" Cita : agendar >
+Medico "1" -- "0..*" Cita : atiende >
+Cita "1" --> "0..1" Diagnostico : genera >
+Diagnostico "1" --> "1" Receta : produce >
+Receta "1" --> "0..*" Medicamento : contiene >
+Medico "1" --> "1" Especialidad : especialidad >
+Usuario --> Notificacion : recibe >
+
+' ─────────────────────────────────────────
+' NOTAS EXPLICATIVAS
+' ─────────────────────────────────────────
+
+note bottom of Usuario
+  <<abstract>> base para Gestión común\nde autenticación y perfil de usuarios.\nPatrón de herencia: Persona -> Usuario\n-> Paciente / Medico / Administrador.
+end note
+
+note right of Notificacion
+  Polimorfismo aplicado:\nla clase base Notificacion tiene\nmúltiples formas de envío:\nEmail, SMS y Push.
+end note
+
+@enduml

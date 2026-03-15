@@ -1,0 +1,40 @@
+@startuml
+'configuracion visual segura
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+'Yonehidy Ruiz Cuelllo 2019-6095
+'===========COMPONENTES============
+Package "Backend - API REST"
+{
+    [API REST ] as api
+    [Autenticacion] as auth
+    [Gestor de Usuarios] as usuarios
+    [Gestor de Citas] as citas
+    [Gestor Clinico] as clinico
+    [Servicio de Notificaciones] as notificaciones
+}
+'===========RELACIONES============
+api --> auth : Validar Credenciales
+api --> usuarios : CRUD usuarios
+api --> citas : Gestionar citas
+api --> clinico : Registrar diagnosticos
+api --> notificaciones : Enviar alertas
+'===========NOTAS============
+note bottom of auth
+Usar JWT para autenticacion
+y manejo de sesiones.
+end note
+
+note bottom of notificaciones
+politicas de reintentos 
+Soporta multiples canales.
+end note
+
+note bottom of clinico
+Gestiona historial medico,
+diagnoticos y recetas.
+end note
+
+@enduml
+

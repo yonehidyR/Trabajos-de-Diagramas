@@ -1,0 +1,15 @@
+@startuml
+
+'configuracion visual segura
+skinparam componentStyle rectangle
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+'Yonehidy Ruiz Cuelllo 2019-6095
+'=============COMPONENTES====================
+package "Servicios Externos" {
+   [SendGrid/ Email] as email
+   [Proveedor / Servicio] as alias
+   [Twilio / SMS] as sms
+   [Firebase Cloud Messaging] as fcm
+}
+@enduml

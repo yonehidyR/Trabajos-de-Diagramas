@@ -1,0 +1,113 @@
+@startuml citas-medicas
+
+skinparam classAttributeIcon false
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+skinparam class {
+'Yonehidy Ruiz Cuello - 2018-6095
+}
+
+' ─────────────────────────────────────────
+' CLASES
+' ─────────────────────────────────────────
+
+class Paciente {
+    - idPaciente : int
+    - nombre : String
+    - apellido : String
+    - email : String
+    - telefono : String
+    - fechaNacimiento : Date
+    --
+    + agendarCita(medico: Medico, fecha: Date, hora: Time, motivo: String) : boolean
+    + cancelarCita(idCita: int) : boolean
+    + verHistorialCitas() : List<Cita>
+    + recibirNotificacion(mensaje: String) : void
+    + editarPerfil(email: String, telefono: String) : boolean
+}
+
+class Medico {
+    - idMedico : int
+    - nombre : String
+    - apellido : String
+    - email : String
+    - telefono : String
+    - especialidad : Especialidad
+    - horarioInicio : Time
+    - horarioFin : Time
+    --
+    + verAgenda(fecha: Date) : List<Cita>
+    + confirmarAsistencia(idCita: int) : boolean
+    + registrarDiagnostico(idCita: int, diagnostico: String, receta: String) : boolean
+    + actualizarDisponibilidad(inicio: Time, fin: Time) : boolean
+    + verPacientesAtendidos(fechaInicio: Date, fechaFin: Date) : List<Paciente>
+    + recibirNotificacion(mensaje: String) : void
+}
+
+class Especialidad {
+    - idEspecialidad : int
+    - nombre : String
+    --
+    + getNombre() : String
+    + setNombre(nombre: String) : void
+}
+
+class Cita {
+    - idCita : int
+    - paciente : Paciente
+    - medico : Medico
+    - fecha : Date
+    - hora : Time
+    - estado : String  // Pendiente, Confirmada, Cancelada, Completada
+    - motivo : String
+    --
+    + cambiarEstado(nuevoEstado: String) : boolean
+    + getDuracion() : int  // por ejemplo, 30 minutos
+    + esPasada() : boolean
+    + notificarRecordatorio() : void
+}
+
+class Administrador {
+    - idAdmin : int
+    - nombre : String
+    - email : String
+    --
+    + crearMedico(nombre: String, apellido: String, email: String, tel: String, especialidad: Especialidad) : Medico
+    + eliminarMedico(id: int) : boolean
+    + editarMedico(id: int, datos: Map<String, Object>) : boolean
+    + crearPaciente(nombre: String, apellido: String, email: String, tel: String, fechaNac: Date) : Paciente
+    + eliminarPaciente(id: int) : boolean
+    + crearEspecialidad(nombre: String) : Especialidad
+    + verReporteOcupacionMedicos(fechaInicio: Date, fechaFin: Date) : Reporte
+    + gestionarCitas(idCita: int, accion: String) : boolean
+}
+
+' ─────────────────────────────────────────
+' NOTAS
+' ─────────────────────────────────────────
+
+note right of Cita
+  Estado: Pendiente, Confirmada,\nCancelada, Completada
+end note
+
+note bottom of Administrador
+  Puede gestionar usuarios,\nespecialidades y reportes.
+end note
+
+' ─────────────────────────────────────────
+' RELACIONES
+' ─────────────────────────────────────────
+
+Paciente "1" -- "0..*" Cita : agendar >
+
+Medico "1" -- "0..*" Cita : atender >
+
+Medico "1" --> "1" Especialidad : pertenece a >
+
+Administrador "1" --> "0..*" Paciente : gestiona >
+
+Administrador "1" --> "0..*" Medico : gestiona >
+
+Administrador "1" --> "0..*" Especialidad : gestiona >
+
+@enduml

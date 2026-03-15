@@ -1,0 +1,14 @@
+@startuml
+'configuracion visual sugura
+skinparam componentStyle rectangle
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+'Yonehidy Ruiz Cuelllo 2019-6095
+'==============COMPONENTES======================
+package "Frontend"
+{
+    [interfaz Web] as Web
+    [App Móvil] as Mobile
+
+}
+ @enduml
